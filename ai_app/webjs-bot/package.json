@@ -1,0 +1,17 @@
+{
+  "name": "webjs-bot",
+  "version": "1.0.0",
+  "description": "Node client to simulate conversation between LLM and User",
+  "main": "main.js",
+  "scripts": {
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Keshav Dutt Kaushik",
+  "license": "ISC",
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.26.0",
+    "wwebjs-mongo": "^1.1.0"
+  }
+}

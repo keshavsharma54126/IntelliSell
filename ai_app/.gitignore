@@ -1,0 +1,60 @@
+# Web-JS
+node_modules
+local_auth
+.wwebjs_cache
+model/
+__pycache__/
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.pytest_cache/
+
+# Virtual Environment
+venv/
+env/
+.venv/
+.env/
+ai_app/venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.so
+
+# Node.js
+node_modules/
+package-lock.json
+
+# IDE files
+.vscode/
+.idea/
+
+# Misc
+*.log
+.DS_Store
+
+# Specific to your project
+local_auth/
+.wwebjs_cache/
+model/
+
+# Ignore everything in the venv directory
+/ai_app/venv/
+/ai_app/venv/**
+**/venv/
+**/venv/**
+
+# Ignore all __pycache__ directories
+**/__pycache__/
+**/*.pyc
+
+# Ignore package-lock.json in whatsapp-server
+/whatsapp-server/package-lock.json
+
+# Ignore all files in site-packages
+ai_app/venv/lib/python3.12/site-packages/
+
+

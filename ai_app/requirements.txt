@@ -1,0 +1,16 @@
+fastapi[standard]==0.114.2
+requests==2.32.3
+beautifulsoup4
+lxml[html_clean]
+newspaper3k
+PyPDF2==3.0.1
+boto3
+langchain==0.3.0
+uvicorn==0.30.6
+pydantic==2.9.1
+python-dotenv==1.0.1
+pymilvus==2.4.6
+anthropic
+pymilvus[model]
+twilio
+sentence-transformers
