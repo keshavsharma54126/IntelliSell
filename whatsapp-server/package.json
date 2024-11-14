@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
+    "@types/redis": "^4.0.10",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -37,6 +38,7 @@
     "mongoose": "^8.7.0",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
+    "redis": "^4.7.0",
     "whatsapp-web.js": "^1.26.0",
     "wwebjs-mongo": "^1.1.0",
     "xml2js": "^0.6.2"

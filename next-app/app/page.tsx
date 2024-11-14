@@ -52,7 +52,7 @@ export default function Component() {
       label: "Login",
       onClick: () => signIn(undefined, { callbackUrl: "/home" }),
     },
-    { label: "Signup" },
+    { label: "Signup",onClick:()=>router.push("/signup") },
   ];
 
   const features = [

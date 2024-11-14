@@ -1,12 +1,16 @@
-import { Client, LocalAuth, NoAuth } from "whatsapp-web.js";
+import { Client, LocalAuth, MessageId, NoAuth } from "whatsapp-web.js";
 import qrcode from "qrcode";
 import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
+import { createClient, RedisClientType } from "redis";
+
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const redisClient: RedisClientType = createClient();
+redisClient.connect();
 
 app.use(express.json());
 app.use(cors({ origin: "*" }));
@@ -88,22 +92,23 @@ async function initializeWhatsApp(projectId: string, allowedNumbers: string[]) {
 
     client.on("message", async (message: any) => {
       try {
-        const foundContact = await message.getContact();
-        if (!message.fromMe && allowedNumbers.includes(foundContact.number)) {
-          const response = await axios.post(
-            "http://localhost:8000/user/get-query-response",
-            { message: message.body },
-            {
-              headers: {
-                accept: "application/json",
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          await message.reply(response.data);
+        const phoneNumber = message.from.split('@')[0];
+        if (!message.fromMe && allowedNumbers.includes(phoneNumber)) {
+          redisClient.lPush("messagesqueue", JSON.stringify({
+            messageId: message.id._serialized,
+            from: message.from,
+            body: message.body,
+            timestamp: message.timestamp,
+            clientId: projectId,
+            fromMe: message.fromMe,
+            remote: message.remote,
+            id: message.id.id
+          }));
         }
+        console.log("message pushed to redis");
       } catch (error) {
         console.error("Error handling incoming message:", error);
+        await message.reply("Sorry, I encountered an error processing your message. Please try again later.");
       }
     });
 
@@ -117,6 +122,82 @@ async function initializeWhatsApp(projectId: string, allowedNumbers: string[]) {
     console.error("Error initializing WhatsApp client:", error);
   }
 }
+
+const processMessages = async () => {
+  // Create a separate Redis client for the worker
+  const workerRedisClient: RedisClientType = createClient();
+  await workerRedisClient.connect().catch(console.error);
+
+  console.log("Worker Redis client connected and started processing messages.");
+
+  while (true) {
+    try {
+      // BRPOP returns a tuple [key, value]. Timeout is 0 for blocking indefinitely
+      const result = await workerRedisClient.brPop("messagesqueue", 0);
+      if (result) {
+        
+        const { messageId, from, body, timestamp, clientId, fromMe, remote, id } = JSON.parse(result.element);
+
+        // Retrieve the appropriate client using clientId
+        const client = clients.get(clientId);
+        if (client) {
+          try {
+            // Obtain the MessageId object required for quoting
+            const messageIdObj: MessageId = {
+              _serialized: messageId,
+              fromMe,
+              remote,
+              id
+            };
+
+            // Send a reply to the original message using the 'quoted' option
+            console.log("sending response to user");
+            const response = await axios.post(
+              "http://localhost:8000/user/get-query-response",
+              { message: body },
+              {
+                headers: {
+                  accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            console.log("response sent to user");
+
+            if (response.data) {
+              console.log("sending response to user");
+              await client.sendMessage(from, response.data, { quotedMessageId: messageIdObj._serialized });
+            } else {
+              await client.sendMessage(
+                from,
+                "I apologize, but I'm unable to process your request at the moment. We are currently under maintenance and will reach out to you as soon as possible.",
+                { quotedMessageId: messageIdObj._serialized }
+              );
+            }
+          } catch (error) {
+            console.error("Error processing and responding to message:", error);
+            if (client) {
+              await client.sendMessage(
+                from,
+                "Sorry, I encountered an error processing your message. Please try again later.",
+                { quotedMessageId: messageId._serialized }
+              );
+            }
+          }
+        } else {
+          console.warn(`Client with ID ${clientId} not found.`);
+          // Optionally, enqueue the message again or log for manual processing
+        }
+      }
+    } catch (error) {
+      console.error("Error in processMessages loop:", error);
+      // Optional: Add a delay before retrying in case of persistent errors
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  }
+};
+processMessages();
 
 app.post("/initializeClient", async (req: any, res: any) => {
   try {

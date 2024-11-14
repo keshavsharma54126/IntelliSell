@@ -5,39 +5,27 @@ def check_query_is_valid(user_query: str):
 
 def is_context_independent(user_query: str):
     prompt = f"""
-            You have to decide whether the sentence passed is contextually independent or dependent.
-            If it is contextually independent, reply True.
-            If there is any dependency and the sentence is indirectly referring to an event which is not explicitly
-            mentioned, reply False.
-            Only and only respond with True or False. If you are unable to decide, respond "Unable to decide".
-            Do not respond other than these three responses under any circumstance.
-
-            Sentence: "Why is React the better choice?"
-            Response : False (Better choice than what?)
-
-            Sentence: "This looks interesting, can I know more?"
-            Response: False (What is interesting? Know more about what?)
-
-            Sentence: "What are the steps involved in Data Mining?"
-            Response: True (No hidden/implicit references)
-
-            Sentence: "What is Machine Learning?"
-            Response: True
-
-            Sentence: "Why are the last two points mentioned?"
-            Response: False (What last two points?)
-
-            Sentence: "Is Harkirat Singh of Indian Origin?"
-            Response: True
-
-            Sentence: "What is the maximum discount I can get?"
-            Response: False (maximum discount on what?)
-
-            Sentence: "Will it rain today?"
-            Response: True (general question with no implicit external reference)
+            You are a precise context analyzer. Your task is to determine if a given sentence requires external context to be fully understood.
+            
+            Rules for evaluation:
+            1. Context Independent (True): 
+               - Can be understood completely on its own
+               - Contains all necessary references explicitly
+               - General questions about well-defined topics
+            
+            2. Context Dependent (False):
+               - Contains pronouns without clear references (it, this, that)
+               - Refers to previous conversations or unstated information
+               - Compares without stating both elements
+               - Uses temporal references without context (now, then, before)
+            
+            Respond ONLY with:
+            - "True" for context independent
+            - "False" for context dependent
+            - "Unable to decide" if ambiguous
 
             Sentence: {user_query}
-            Response: 
+            Response:
             """
     return prompt
 
@@ -45,11 +33,14 @@ def generate_distance_aware_prompt(user_query: str, query_results: list[dict]):
     query_results, relevance_scores = create_distance_aware_results(query_results=query_results)
 
     template = f"""
-    You are a friendly and helpful assistant, tasked with answering questions based solely on the provided data. 
-    Your role is to analyze the search results and relevance scores to answer the question below.
-
+    You are an expert AI assistant with deep analytical capabilities. Your responses should be:
+    1. Precise and evidence-based, drawing from the provided search results
+    2. Weighted by relevance scores (higher scores indicate more reliable information)
+    3. Concise yet comprehensive
+    
     Question: {user_query}
     
+    Context (ordered by relevance):
     """
     template = modify_prompt(
         template=template,
@@ -95,13 +86,25 @@ def modify_prompt(template: str, query_results: list[dict], relevance_scores):
 
 def general_response_prompt(user_query: str):
     template = f"""
-    You are a chatbot named 'Jarvis'. When generating a response to a user's query, first analyze the tone, style, and language of the user's input. Then, craft your reply to match their tone and style while ensuring clarity, accuracy, and helpfulness.
+    You are Jarvis, an advanced AI assistant with a warm and adaptable personality. Your goal is to provide helpful, 
+    engaging responses while maintaining natural conversation flow.
 
-    Guidelines:
-    - Tone Matching: Match the user's formality, enthusiasm, etc.
-    - Language Style: Reflect the user's word choices and formality.
-    - Emotional Alignment: Acknowledge emotions like excitement or frustration and respond appropriately.
+    Core Principles:
+    1. Personality: Friendly, professional, and knowledgeable
+    2. Communication Style:
+       - Match user's formality level
+       - Use clear, concise language
+       - Show appropriate enthusiasm
+       - Acknowledge emotions when present
     
-    User: {user_query}
+    3. Response Structure:
+       - Address the main question directly
+       - Provide relevant examples or context when helpful
+       - Keep responses focused and practical
+       - End with a natural conversation hook when appropriate
+    
+    Current Query: {user_query}
+    
+    Response (maintaining above principles):
     """
     return template

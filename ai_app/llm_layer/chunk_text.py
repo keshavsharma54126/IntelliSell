@@ -1,4 +1,4 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter # type: ignore
 
 def chunk_extracted_text(text: str):
     """
@@ -12,7 +12,7 @@ def chunk_extracted_text(text: str):
 
         # Using LangChain's Recursive Text Splitter for chunking
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
+            chunk_size=10000,
             chunk_overlap=200,
             length_function=len,
             separators=["\n\n", "\n", " ", ""]
